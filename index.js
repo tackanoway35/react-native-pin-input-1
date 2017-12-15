@@ -26,7 +26,8 @@ export default class PinInput extends Component<void,P,S> {
         this.props.placeholder = props.placeholder || props.placeHolder || '_';
         this.pinLength = this.props.pinLength || 4;
         this.state = {
-            pins: Array(this.pinLength).fill(null)
+            pins: Array(this.pinLength).fill(null),
+            isBackSpace: false
         };
         let value = this.props.value;
         if (value) {
@@ -131,14 +132,14 @@ export default class PinInput extends Component<void,P,S> {
         this.refs[`pin_${i}`].blur();
     }
 
-
     render() {
         return (
-            <View style={styles.container}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center'}}>
                 {
                     this.state.pins.map((v, i) => {
                         return (
                             <TextInput
+                                selectionColor={'transparent'}
                                 key={"pin_" + i}
                                 ref={`pin_${i}`}
                                 autoFocus={this.props.autoFocus && i === 0}
@@ -164,13 +165,35 @@ export default class PinInput extends Component<void,P,S> {
     }
 
     async onPinFocus(i) {
-        await this.setStateAsync({pins: Immutable.List(this.state.pins).set(i, null).toArray()})
+        if (!this.state.isBackSpace) {
+            if (this.state.pins[0] === '' || this.state.pins[0] === null) {
+                this.focusPin(0);
+            } else {
+                for (let k in this.state.pins) {
+                    if (this.state.pins[k] === '' || this.state.pins[k] === null) {
+                        this.focusPin(k);
+                        break;
+                    }
+                }
+            }
+        } else {
+            await this.setStateAsync({pins: Immutable.List(this.state.pins).set(i, null).toArray()})
+            this.setState({
+                isBackSpace: false
+            })
+        }
     }
 
     onPinKeyPress(e, i) {
         let key = e.nativeEvent.key;
         if (key === 'Backspace') {
-                this.focusPin(Math.max(i - 1, 0))
+            this.setState({
+                isBackSpace: true
+            }, () => {
+                let maxIndex = Math.max(i - 1, 0)
+                this.focusPin(maxIndex);
+                console.log('maxIndex', maxIndex)
+            })
         }
     }
 
@@ -179,7 +202,6 @@ export default class PinInput extends Component<void,P,S> {
     }
 }
 const styles = StyleSheet.create({
-    container: {flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center'},
     pinItem: {
         padding: 2,
         margin: 2,
