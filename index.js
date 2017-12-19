@@ -154,6 +154,7 @@ export default class PinInput extends Component<void, P, S> {
                         }
                         return (
                             <TextInput
+                                placeholderTextColor={'rgba(0, 0, 0, 0.54)'}
                                 selectionColor={'transparent'}
                                 key={"pin_" + i}
                                 ref={`pin_${i}`}
